@@ -230,7 +230,7 @@
                             context.font = "16pt Calibri";
                             context.strokeStyle = 'white';
                             //context.fillText("" + KnownPeople + " (" + Math.floor(face["candidates"][0]["confidence"] * 100) + "%)", (rect["left"] + (rect["width"] / 2)) * ZoomFactor , (rect["top"]  - 20) * ZoomFactor);
-                            drawStroked(ctx, ("" + KnownPeople + " (" + Math.floor(face["candidates"][0]["confidence"] * 100) + "%)"), (rect["left"]) * ZoomFactor , (rect["top"]  - 30) * ZoomFactor);
+                            drawStroked(ctx, ("" + KnownPeople + " (" + Math.floor(face["candidates"][0]["confidence"] * 100) + "%)"), (rect["left"] - 30) * ZoomFactor , (rect["top"]  - 30) * ZoomFactor);
 
                             document.getElementById("people").innerHTML = document.getElementById("people").innerHTML + person["OnImgIndex"] + "  -  " + person["desc"] + " - " + person["name"] + " - " + (face["candidates"][0]["confidence"] * 100) + "<br>";
 
