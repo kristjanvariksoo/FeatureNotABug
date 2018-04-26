@@ -6,7 +6,7 @@
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
 </head>
 <body>
-  <canvas id="myCanvas" width="800" height="700"></canvas>
+  <canvas id="myCanvas" width="1500" height="700"></canvas>
   <p id="people"></p>
   <style>
     .thumb {
@@ -21,7 +21,32 @@
 
   <script>
 
-  PEOPLE = [{"fbid":"", "name":"Kristjan Variksoo", "desc":"kiku krijeldus", "personId":"abf0a5c5-eca3-4713-bbaf-1b1389e5c189"}];
+  PEOPLE = [
+		{
+			"desc":"Elab Tartus",
+			"fbid":"kjbalder",
+			"name":"Karl Johannes Balder",
+			"personId":"e9fa8adf-e3d5-4be3-9662-f3d66412676a"
+		},
+		{
+			"desc":"Nuusutab tihti lilli, mis võivad tal olla käes",
+			"fbid":"lauralenbaum",
+			"name":"Laura Lenbaum",
+			"personId":"5982fed2-d57d-43d8-8469-f6c5a194c176"
+		},
+		{
+			"desc":"Kannab kampsuneid",
+			"fbid":"radne11",
+			"name":"Radne Kaal",
+			"personId":"4237345d-71e3-4428-bdd3-fc5eb244e802"
+		},
+		{
+			"desc":"Käib gümnaasiumis",
+			"fbid":"kristjan.variksoo",
+			"name":"Kristjan Variksoo",
+			"personId":"7adb44aa-0474-4c98-b4e3-b4a69d2d65d8"
+		}
+	];
 
   makeblob = function (dataURL) {
       var BASE64_MARKER = ';base64,';
@@ -49,6 +74,7 @@
     var FACES;
 
     function handleFileSelect(evt) {
+      document.getElementById("people").innerHTML = "";
       var files = evt.target.files; // FileList object
 
       // Loop through the FileList and render image files as thumbnails.
@@ -135,10 +161,6 @@
 
               })
               .done(function(data) {
-                console.log("FACES ---->");
-                console.log(FACES);
-                console.log("data ----->");
-                console.log(data);
                 FACES.forEach(function (face) {
                   data.forEach(function (dat) {
                     if (face["faceId"] == dat["faceId"]) {
@@ -163,6 +185,7 @@
                       //On Kristjan
                       context.strokeStyle = 'green';
                       PEOPLE.forEach(function (person) {
+
                         if (face["candidates"][0]["personId"] == person["personId"]) {
                           person["OnImgIndex"] = KnownPeople;
 
@@ -170,7 +193,7 @@
                           context.strokeStyle = 'white';
                           context.fillText("" + KnownPeople, rect["left"] + (rect["width"] / 2), rect["top"] + (rect["height"]/2));
 
-                          document.getElementById("people").innerHTML = person["OnImgIndex"] + "  -  " + person["name"];
+                          document.getElementById("people").innerHTML = document.getElementById("people").innerHTML + person["OnImgIndex"] + "  -  " + person["name"] + "<br>";
 
                           KnownPeople += 1;
                         }
