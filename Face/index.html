@@ -85,8 +85,6 @@
             .done(function(data) {
               console.log("DETECT IS DONE! GREIT SUKSEESSS!");
               console.log(data);
-              console.log(data[0]);
-              console.log(data[0]["faceId"]);
 
               faceIds = [];
 
@@ -111,7 +109,7 @@
                   },
                   type: "POST",
                   // Request body
-                  data: '{"personGroupId": "enginaator","faceIds": ' + JSON.stringify(faceIds) + ',"maxNumOfCandidatesReturned": 1,"confidenceThreshold": 0.1}'
+                  data: '{"personGroupId": "enginaator","faceIds": ' + JSON.stringify(faceIds) + ',"maxNumOfCandidatesReturned": 1}'
 
               })
               .done(function(data) {
