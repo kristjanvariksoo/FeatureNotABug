@@ -5,76 +5,144 @@
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
 </head>
 <body>
+  <style>
+    .thumb {
+      height: 75px;
+      border: 1px solid #000;
+      margin: 10px 5px 0 0;
+    }
+  </style>
+
+  <input type="file" id="files" name="files[]" multiple />
+  <output id="list"></output>
+
+  <script>
+
+  makeblob = function (dataURL) {
+          var BASE64_MARKER = ';base64,';
+          if (dataURL.indexOf(BASE64_MARKER) == -1) {
+              var parts = dataURL.split(',');
+              var contentType = parts[0].split(':')[1];
+              var raw = decodeURIComponent(parts[1]);
+              return new Blob([raw], { type: contentType });
+          }
+          var parts = dataURL.split(BASE64_MARKER);
+          var contentType = parts[0].split(':')[1];
+          var raw = window.atob(parts[1]);
+          var rawLength = raw.length;
+
+          var uInt8Array = new Uint8Array(rawLength);
+
+          for (var i = 0; i < rawLength; ++i) {
+              uInt8Array[i] = raw.charCodeAt(i);
+          }
+
+          return new Blob([uInt8Array], { type: contentType });
+      }
+
+    var IMAGE;
+    function handleFileSelect(evt) {
+      var files = evt.target.files; // FileList object
+
+      // Loop through the FileList and render image files as thumbnails.
+      for (var i = 0, f; f = files[i]; i++) {
+
+        // Only process image files.
+        if (!f.type.match('image.*')) {
+          continue;
+        }
+
+        var reader = new FileReader();
+
+        // Closure to capture the file information.
+        reader.onload = (function(theFile) {
+          return function(e) {
+
+
+
+            console.log(e.target.result);
+            IMAGE = e.target.result;
+
+            document.getElementById('files').addEventListener('change', handleFileSelect, false);
+
+            var params = {"returnFaceId":true, "returnFaceLandmarks":false};
+            $.ajax({
+                url: "https://westcentralus.api.cognitive.microsoft.com/face/v1.0/detect?" + $.param(params),
+                beforeSend: function(xhrObj){
+                    // Request headers
+                    xhrObj.setRequestHeader("Content-Type","application/octet-stream");
+
+                    // NOTE: Replace the "Ocp-Apim-Subscription-Key" value with a valid subscription key.
+                    xhrObj.setRequestHeader("Ocp-Apim-Subscription-Key","26b9b465ce4d4aab93fda70cd5b033b6");
+                },
+                type: "POST",
+                processData:false,
+                // Request body
+                data: makeblob(IMAGE)
+
+            })
+            .done(function(data) {
+              console.log("DETECT IS DONE! GREIT SUKSEESSS!");
+              console.log(data);
+              console.log(data[0]);
+              console.log(data[0]["faceId"]);
+
+              faceIds = [];
+
+              data.forEach(function (element) {
+                faceIds.push(element["faceId"]);
+              }
+            );
+
+              console.log("foreach litib");
+              console.log(faceIds);
+
+              var params2 = {};
+
+              $.ajax({
+                  url: "https://westcentralus.api.cognitive.microsoft.com/face/v1.0/identify?" + $.param(params2),
+                  beforeSend: function(xhrObj){
+                      // Request headers
+                      xhrObj.setRequestHeader("Content-Type","application/json");
+
+                      // NOTE: Replace the "Ocp-Apim-Subscription-Key" value with a valid subscription key.
+                      xhrObj.setRequestHeader("Ocp-Apim-Subscription-Key","26b9b465ce4d4aab93fda70cd5b033b6");
+                  },
+                  type: "POST",
+                  // Request body
+                  data: '{"personGroupId": "enginaator","faceIds": ' + JSON.stringify(faceIds) + ',"maxNumOfCandidatesReturned": 1,"confidenceThreshold": 0.1}'
+
+              })
+              .done(function(data) {
+                console.log("MORE SUKSIIISSS!");
+                console.log(data);
+                  alert("success");
+              })
+              .fail(function() {
+                  alert("error");
+              });
+            })
+            .fail(function() {
+                alert("error");
+            });
+
+          };
+        })(f);
+
+        // Read in the image file as a data URL.
+        reader.readAsDataURL(f);
+      }
+  }
+
+  document.getElementById('files').addEventListener('change', handleFileSelect, false);
+</script>
 
 <script type="text/javascript">
-  $(function() {
-      var params = {"returnFaceId":true, "returnFaceLandmarks":false};
 
-      $.ajax({
-          // NOTE: You must use the same location in your REST call as you used to obtain your subscription keys.
-          //   For example, if you obtained your subscription keys from westus, replace "westcentralus" in the
-          //   URL below with "westus".
-          url: "https://westcentralus.api.cognitive.microsoft.com/face/v1.0/detect?" + $.param(params),
-          beforeSend: function(xhrObj){
-              // Request headers
-              xhrObj.setRequestHeader("Content-Type","application/json");
+$(function() {
 
-              // NOTE: Replace the "Ocp-Apim-Subscription-Key" value with a valid subscription key.
-              xhrObj.setRequestHeader("Ocp-Apim-Subscription-Key","26b9b465ce4d4aab93fda70cd5b033b6");
-          },
-          type: "POST",
-          // Request body
-          data: '{"url": "https://scontent-arn2-1.xx.fbcdn.net/v/t1.0-9/18118419_1473031866093413_7702277136369359025_n.jpg?_nc_cat=0&oh=bee0e08f5324d8a22c4189c24f4383f5&oe=5B9D2530"}'
 
-      })
-      .done(function(data) {
-        console.log("DETECT IS DONE! GREIT SUKSEESSS!");
-        console.log(data);
-        console.log(data[0]);
-        console.log(data[0]["faceId"]);
-
-        faceIds = [];
-
-        data.forEach(function (element) {
-          faceIds.push(element["faceId"]);
-        }
-      );
-
-        console.log("foreach litib");
-        console.log(faceIds);
-
-        var params2 = {};
-
-        $.ajax({
-            // NOTE: You must use the same location in your REST call as you used to obtain your subscription keys.
-            //   For example, if you obtained your subscription keys from westus, replace "westcentralus" in the
-            //   URL below with "westus".
-            url: "https://westcentralus.api.cognitive.microsoft.com/face/v1.0/identify?" + $.param(params2),
-            beforeSend: function(xhrObj){
-                // Request headers
-                xhrObj.setRequestHeader("Content-Type","application/json");
-
-                // NOTE: Replace the "Ocp-Apim-Subscription-Key" value with a valid subscription key.
-                xhrObj.setRequestHeader("Ocp-Apim-Subscription-Key","26b9b465ce4d4aab93fda70cd5b033b6");
-            },
-            type: "POST",
-            // Request body
-            data: '{"personGroupId": "enginaator","faceIds": ' + JSON.stringify(faceIds) + ',"maxNumOfCandidatesReturned": 1,"confidenceThreshold": 0.1}'
-
-        })
-        .done(function(data) {
-          console.log("MORE SUKSIIISSS!");
-          console.log(data);
-            alert("success");
-        })
-        .fail(function() {
-            alert("error");
-        });
-      })
-      .fail(function() {
-          alert("error");
-      });
-  });
+});
 </script>
 </body>
 </html>
