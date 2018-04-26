@@ -7,8 +7,16 @@
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
 </head>
 <body>
-  <canvas id="myCanvas" width="500" height="375"></canvas>
+  <div>
+
+  <div id="container">
+      <video autoplay id="videoElement">
+
+      </video>
+      <canvas id="myCanvas" width="640" height="480"></canvas>
+  </div>
   <p id="people"></p>
+</div>
   <style>
     .thumb {
       height: 75px;
@@ -16,26 +24,25 @@
       margin: 10px 5px 0 0;
     }
   </style>
-  <input type="file" id="files" name="files[]" multiple />
+  <input type="file" id="files" name="files[]" hidden multiple />
 
-  <input id="fileselect" type="file" accept="image/*" capture="camera">
+  <input id="fileselect" type="file" accept="image/*" hidden capture="camera">
 
   <!-- For devices that support getUserMedia and have a webcam we can display the feed in a video element -->
-  <div id="container">
-      <video autoplay id="videoElement">
 
-      </video>
-  </div>
 
-  <-- Selected image will be draw to a canvas -->
-  <canvas id="canvas" width="500" height="375" hidden></canvas>
+  <canvas id="canvas" width="640" height="480" hidden></canvas>
 
   <!-- Used to capture frame from webcam video feed -->
-  <input type="button" value="Save" id="save" />
+  <input hidden type="button" value="Save" id="save" />
 
   <output id="list"></output>
 
   <script>
+  var c=document.getElementById("myCanvas");
+  var ctx=c.getContext("2d");
+  drawStroked(ctx, "Palun oodake...\nInternet on slow...", 200, 200);
+
   var video = document.querySelector("#videoElement");
 
   // check for getUserMedia support
@@ -49,6 +56,7 @@
   function handleVideo(stream) {
       // if found attach feed to video element
       video.src = window.URL.createObjectURL(stream);
+      document.getElementById('save').click();
       window.setInterval(function () {document.getElementById('save').click();}, 6000);
   }
 
@@ -93,8 +101,9 @@
 
        ZoomFactor = 1;
 
-       max_height = 700;
-       max_width = 1500;
+       max_width = 640;
+       max_height = 480;
+
 
        img_height = img.height;
        img_width = img.width;
@@ -170,7 +179,7 @@
              },
              type: "POST",
              // Request body
-             data: '{"personGroupId": "enginaator","faceIds": ' + JSON.stringify(faceIds) + ',"maxNumOfCandidatesReturned": 1, "confidenceThreshold":0.3}'
+             data: '{"personGroupId": "enginaator","faceIds": ' + JSON.stringify(faceIds) + ',"maxNumOfCandidatesReturned": 1, "confidenceThreshold":0.2}'
 
          })
          .done(function(data) {
@@ -187,7 +196,7 @@
 
            ctx.drawImage(img,0,0,new_width, new_height);
 
-           KnownPeople = 0;
+           KnownPeople = 1;
            document.getElementById("people").innerHTML = "";
            FACES.forEach(function (face) {
                rect = face["faceRectangle"];
