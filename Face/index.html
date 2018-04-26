@@ -1,22 +1,66 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8" />
-    <title>JSSample</title>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="favicon.ico">
 
+    <title>FeatureNotABug</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="starter-template.css" rel="stylesheet">
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
-</head>
-<body>
-  <div>
+    <script>window.jQuery || document.write('<script src="js/vendor/jquery-slim.min.js"><\/script>')</script>
+    <script src="js/vendor/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
 
-  <div id="container">
-      <video autoplay id="videoElement">
+  </head>
 
-      </video>
-      <canvas id="myCanvas" width="640" height="480"></canvas>
-  </div>
-  <p id="people"></p>
-</div>
+  <body>
+
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+      <a class="navbar-brand" href="#">FeatureNotABug</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item active">
+            <a class="nav-link" href="#">Live (Veebikaamera) <span class="sr-only">(current)</span></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="index2.html">Manuaalne (Pildilt)</a>
+          </li>
+        </ul>
+
+      </div>
+    </nav>
+
+    <main role="main" class="container">
+      <div class="row" style="padding-top:5rem;">
+        <div class="col-md-6"><video autoplay id="videoElement"></video></div>
+        <div class="col-md-6"><canvas id="myCanvas" width="640" height="480"></canvas></div>
+        <table class="table" id="people">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Nimi</th>
+              <th scope="col">Kirjeldus</th>
+              <th scope="col">Täpsus</th>
+            </tr>
+          </thead>
+          <tbody>
+
+          </tbody>
+        </table>
+      </div>
+
   <style>
     .thumb {
       height: 75px;
@@ -197,7 +241,7 @@
            ctx.drawImage(img,0,0,new_width, new_height);
 
            KnownPeople = 1;
-           document.getElementById("people").innerHTML = "";
+           document.getElementById("people").getElementsByTagName("tbody")[0].innerHTML = "";
            FACES.forEach(function (face) {
                rect = face["faceRectangle"];
                context.beginPath();
@@ -217,11 +261,10 @@
 
                      context.font = "16pt Calibri";
                      context.strokeStyle = 'white';
-                     //context.fillText("" + KnownPeople + " (" + Math.floor(face["candidates"][0]["confidence"] * 100) + "%)", (rect["left"] + (rect["width"] / 2)) * ZoomFactor , (rect["top"]  - 20) * ZoomFactor);
+
                      drawStroked(ctx, ("" + KnownPeople + " (" + Math.floor(face["candidates"][0]["confidence"] * 100) + "%)"), (rect["left"] - 30) * ZoomFactor , (rect["top"]  - 30) * ZoomFactor);
 
-                     document.getElementById("people").innerHTML = document.getElementById("people").innerHTML + person["OnImgIndex"] + "  -  " + person["desc"] + " - " + person["name"] + " - " + (face["candidates"][0]["confidence"] * 100) + "<br>";
-
+                     document.getElementById("people").getElementsByTagName("tbody")[0].innerHTML = document.getElementById("people").getElementsByTagName("tbody")[0].innerHTML + "<tr><td>" + person["OnImgIndex"] + "</td><td>" + person["name"] + "</td><td>" + person["desc"] + "</td><td>" + (face["candidates"][0]["confidence"] * 100) + "</td></tr>";
                      KnownPeople += 1;
                    }
                  });
@@ -334,12 +377,10 @@ function receivedData() {
   document.getElementById('files').addEventListener('change', handleFileSelect, false);
 </script>
 
-<script type="text/javascript">
 
-$(function() {
+</div>
 
+</main><!-- /.container -->
 
-});
-</script>
 </body>
 </html>
