@@ -7,6 +7,7 @@
 </head>
 <body>
   <canvas id="myCanvas" width="800" height="700"></canvas>
+  <p id="people"></p>
   <style>
     .thumb {
       height: 75px;
@@ -19,6 +20,8 @@
   <output id="list"></output>
 
   <script>
+
+  PEOPLE = [{"fbid":"", "name":"Kristjan Variksoo", "desc":"kiku krijeldus", "personId":"abf0a5c5-eca3-4713-bbaf-1b1389e5c189"}];
 
   makeblob = function (dataURL) {
       var BASE64_MARKER = ';base64,';
@@ -147,6 +150,8 @@
                 console.log("WE ARE DONE!");
                 console.log(FACES);
 
+                KnownPeople = 0;
+
                 FACES.forEach(function (face) {
 
                     rect = face["faceRectangle"];
@@ -157,11 +162,26 @@
                     if (face["candidates"].length != 0) {
                       //On Kristjan
                       context.strokeStyle = 'green';
+                      PEOPLE.forEach(function (person) {
+                        if (face["candidates"][0]["personId"] == person["personId"]) {
+                          person["OnImgIndex"] = KnownPeople;
+
+                          context.font = "32pt Calibri";
+                          context.strokeStyle = 'white';
+                          context.fillText("" + KnownPeople, rect["left"] + (rect["width"] / 2), rect["top"] + (rect["height"]/2));
+
+                          document.getElementById("people").innerHTML = person["OnImgIndex"] + "  -  " + person["name"];
+
+                          KnownPeople += 1;
+                        }
+                      });
                     } else {
                       //Ei ole Kristjan
                       context.strokeStyle = 'red';
                     }
                     context.stroke();
+
+
 
                 //  ______ _            _ _   _
                 // |  ____(_)          (_) | | |
@@ -175,6 +195,8 @@
                   //if (face["candidates"][0])
                   /**/
                 });
+                console.log("PEOPLE");
+                console.log(PEOPLE);
 
 
               })
