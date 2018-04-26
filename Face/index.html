@@ -7,7 +7,7 @@
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
 </head>
 <body>
-  <canvas id="myCanvas" width="1500" height="700"></canvas>
+  <canvas id="myCanvas" width="500" height="375"></canvas>
   <p id="people"></p>
   <style>
     .thumb {
@@ -17,9 +17,249 @@
     }
   </style>
   <input type="file" id="files" name="files[]" multiple />
+
+  <input id="fileselect" type="file" accept="image/*" capture="camera">
+
+  <!-- For devices that support getUserMedia and have a webcam we can display the feed in a video element -->
+  <div id="container">
+      <video autoplay id="videoElement">
+
+      </video>
+  </div>
+
+  <-- Selected image will be draw to a canvas -->
+  <canvas id="canvas" width="500" height="375" hidden></canvas>
+
+  <!-- Used to capture frame from webcam video feed -->
+  <input type="button" value="Save" id="save" />
+
   <output id="list"></output>
 
   <script>
+  var video = document.querySelector("#videoElement");
+
+  // check for getUserMedia support
+  navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia || navigator.oGetUserMedia;
+
+  if (navigator.getUserMedia) {
+      // get webcam feed if available
+      navigator.getUserMedia({video: true}, handleVideo, videoError);
+  }
+
+  function handleVideo(stream) {
+      // if found attach feed to video element
+      video.src = window.URL.createObjectURL(stream);
+      window.setInterval(function () {document.getElementById('save').click();}, 6000);
+  }
+
+  function videoError(e) {
+    console.log(e);
+  }
+
+  var v,canvas,context,w,h;
+  var sel = document.getElementById('fileselect'); // get reference to file select input element
+
+  document.addEventListener('DOMContentLoaded', function(){
+      // when DOM loaded, get canvas 2D context and store width and height of element
+      v = document.getElementById('videoElement');
+      canvas = document.getElementById('canvas');
+      context = canvas.getContext('2d');
+      w = canvas.width;
+      h = canvas.height;
+
+  },false);
+
+  function draw(v,c,w,h) {
+
+      if(v.paused || v.ended) return false; // if no video, exit here
+
+      context.drawImage(v,0,0,w,h); // draw video feed to canvas
+
+     var uri = canvas.toDataURL("image/png"); // convert canvas to data URI
+
+     // console.log(uri); // uncomment line to log URI for testing
+     console.log("Drawing");
+
+     IMAGE = uri;
+
+     var c=document.getElementById("myCanvas");
+     var ctx=c.getContext("2d");
+     var img = new Image;
+     img.src = IMAGE + "";
+     img.onload = function () {
+       console.log("Pilt laetud");
+       console.log(img);
+
+
+       ZoomFactor = 1;
+
+       max_height = 700;
+       max_width = 1500;
+
+       img_height = img.height;
+       img_width = img.width;
+
+       NeededYFactor = img_height/max_height;
+       NeededXFactor = img_width/max_width;
+
+       if (NeededXFactor > 1 || NeededYFactor > 1) {
+         console.log("[RESIZE] Pilt ei mahu ära.");
+         if (NeededXFactor > NeededYFactor) {
+           //X on rohkem üle serva.
+           console.log("[RESIZE] Laius suurem probleem.");
+           ZoomFactor = 1/NeededXFactor;
+         } else {
+           //Y on rohkem üle serva.
+           console.log("[RESIZE] Kõrgus on suurem probleem.");
+           ZoomFactor = 1/NeededYFactor;
+         }
+       }
+
+       new_height = ZoomFactor * img_height;
+       new_width = ZoomFactor * img_width;
+
+       img.height = new_height;
+       img.width = new_width;
+
+
+       console.log("Draw it.");
+       var canvas = document.getElementById('myCanvas');
+       var context = canvas.getContext('2d');
+
+       var params = {"returnFaceId":true, "returnFaceLandmarks":false};
+       $.ajax({
+           url: "https://westcentralus.api.cognitive.microsoft.com/face/v1.0/detect?" + $.param(params),
+           beforeSend: function(xhrObj){
+               // Request headers
+               xhrObj.setRequestHeader("Content-Type","application/octet-stream");
+
+               // NOTE: Replace the "Ocp-Apim-Subscription-Key" value with a valid subscription key.
+               xhrObj.setRequestHeader("Ocp-Apim-Subscription-Key","26b9b465ce4d4aab93fda70cd5b033b6");
+           },
+           type: "POST",
+           processData:false,
+           // Request body
+           data: makeblob(IMAGE)
+
+       })
+       .done(function(data) {
+         console.log("DETECT IS DONE! GREIT SUKSEESSS!");
+         console.log(data);
+
+         FACES = data;
+
+         faceIds = [];
+
+         data.forEach(function (element) {
+           faceIds.push(element["faceId"]);
+         });
+
+         console.log("foreach litib");
+         console.log(faceIds);
+
+         var params2 = {};
+
+         $.ajax({
+             url: "https://westcentralus.api.cognitive.microsoft.com/face/v1.0/identify?" + $.param(params2),
+             beforeSend: function(xhrObj){
+                 // Request headers
+                 xhrObj.setRequestHeader("Content-Type","application/json");
+
+                 // NOTE: Replace the "Ocp-Apim-Subscription-Key" value with a valid subscription key.
+                 xhrObj.setRequestHeader("Ocp-Apim-Subscription-Key","26b9b465ce4d4aab93fda70cd5b033b6");
+             },
+             type: "POST",
+             // Request body
+             data: '{"personGroupId": "enginaator","faceIds": ' + JSON.stringify(faceIds) + ',"maxNumOfCandidatesReturned": 1, "confidenceThreshold":0.3}'
+
+         })
+         .done(function(data) {
+           FACES.forEach(function (face) {
+             data.forEach(function (dat) {
+               if (face["faceId"] == dat["faceId"]) {
+                 face["candidates"] = dat["candidates"];
+               }
+             });
+           });
+
+           console.log("WE ARE DONE!");
+           console.log(FACES);
+
+           ctx.drawImage(img,0,0,new_width, new_height);
+
+           KnownPeople = 0;
+           document.getElementById("people").innerHTML = "";
+           FACES.forEach(function (face) {
+               rect = face["faceRectangle"];
+               context.beginPath();
+               context.rect(rect["left"] * ZoomFactor, rect["top"] * ZoomFactor, rect["width"] * ZoomFactor, rect["height"] * ZoomFactor);
+
+               context.lineWidth = 7;
+               if (face["candidates"].length != 0) {
+                 //On Kristjan
+                 context.strokeStyle = 'green';
+                 PEOPLE.forEach(function (person) {
+
+                   if (face["candidates"][0]["personId"] == person["personId"]) {
+                     // Kui confidence on seatud, siis kui praegune confidence on väiksem kui see mis talle määratud siis igno, muidu kirjuta üle.
+
+                     person["OnImgIndex"] = KnownPeople;
+
+
+                     context.font = "16pt Calibri";
+                     context.strokeStyle = 'white';
+                     //context.fillText("" + KnownPeople + " (" + Math.floor(face["candidates"][0]["confidence"] * 100) + "%)", (rect["left"] + (rect["width"] / 2)) * ZoomFactor , (rect["top"]  - 20) * ZoomFactor);
+                     drawStroked(ctx, ("" + KnownPeople + " (" + Math.floor(face["candidates"][0]["confidence"] * 100) + "%)"), (rect["left"] - 30) * ZoomFactor , (rect["top"]  - 30) * ZoomFactor);
+
+                     document.getElementById("people").innerHTML = document.getElementById("people").innerHTML + person["OnImgIndex"] + "  -  " + person["desc"] + " - " + person["name"] + " - " + (face["candidates"][0]["confidence"] * 100) + "<br>";
+
+                     KnownPeople += 1;
+                   }
+                 });
+               } else {
+                 //Ei ole Kristjan
+                 context.strokeStyle = 'red';
+               }
+               context.stroke();
+             });
+
+           console.log("PEOPLE");
+           console.log(PEOPLE);
+         })
+         .fail(function() {
+         });
+       })
+       .fail(function() {
+       });
+     }; //Img onload lõppeb.
+   }
+
+  document.getElementById('save').addEventListener('click',function(e){
+      draw(v,context,w,h); // when save button is clicked, draw video feed to canvas
+  });
+
+  // for iOS
+
+// create file reader
+var fr;
+
+sel.addEventListener('change',function(e){
+    var f = sel.files[0]; // get selected file (camera capture)
+
+    fr = new FileReader();
+    fr.onload = receivedData; // add onload event
+
+    fr.readAsDataURL(f); // get captured image as data URI
+})
+
+function receivedData() {
+    // readAsDataURL is finished - add URI to IMG tag src
+    imgtag.src = fr.result;
+}
+
+
+
+
   PEOPLE = [
 		{
 			"desc":"Elab Tartus",
@@ -81,188 +321,6 @@
       ctx.fillText(text, x, y);
     }
 
-    function handleFileSelect(evt) {
-      document.getElementById("people").innerHTML = "";
-      document.getElementById("myCanvas").outerHTML = '<canvas id="myCanvas" width="1500" height="700"></canvas>';
-      var files = evt.target.files; // FileList object
-
-      // Loop through the FileList and render image files as thumbnails.
-      for (var i = 0, f; f = files[i]; i++) {
-
-        // Only process image files.
-        if (!f.type.match('image.*')) {
-          continue;
-        }
-
-        var reader = new FileReader();
-
-        // Closure to capture the file information.
-        reader.onload = (function(theFile) {
-          return function(e) {
-            IMAGE = e.target.result;
-
-            var c=document.getElementById("myCanvas");
-            var ctx=c.getContext("2d");
-            var img = new Image;
-            img.src = IMAGE + "";
-            img.onload = function () {
-              console.log("Pilt laetud");
-              console.log(img);
-
-
-              ZoomFactor = 1;
-
-              max_height = 700;
-              max_width = 1500;
-
-              img_height = img.height;
-              img_width = img.width;
-
-              NeededYFactor = img_height/max_height;
-              NeededXFactor = img_width/max_width;
-
-              if (NeededXFactor > 1 || NeededYFactor > 1) {
-                console.log("[RESIZE] Pilt ei mahu ära.");
-                if (NeededXFactor > NeededYFactor) {
-                  //X on rohkem üle serva.
-                  console.log("[RESIZE] Laius suurem probleem.");
-                  ZoomFactor = 1/NeededXFactor;
-                } else {
-                  //Y on rohkem üle serva.
-                  console.log("[RESIZE] Kõrgus on suurem probleem.");
-                  ZoomFactor = 1/NeededYFactor;
-                }
-              }
-
-              new_height = ZoomFactor * img_height;
-              new_width = ZoomFactor * img_width;
-
-              img.height = new_height;
-              img.width = new_width;
-
-              ctx.drawImage(img,0,0,new_width, new_height);
-              console.log("Draw it.");
-              var canvas = document.getElementById('myCanvas');
-              var context = canvas.getContext('2d');
-
-
-              document.getElementById('files').addEventListener('change', handleFileSelect, false);
-
-              var params = {"returnFaceId":true, "returnFaceLandmarks":false};
-              $.ajax({
-                  url: "https://westcentralus.api.cognitive.microsoft.com/face/v1.0/detect?" + $.param(params),
-                  beforeSend: function(xhrObj){
-                      // Request headers
-                      xhrObj.setRequestHeader("Content-Type","application/octet-stream");
-
-                      // NOTE: Replace the "Ocp-Apim-Subscription-Key" value with a valid subscription key.
-                      xhrObj.setRequestHeader("Ocp-Apim-Subscription-Key","26b9b465ce4d4aab93fda70cd5b033b6");
-                  },
-                  type: "POST",
-                  processData:false,
-                  // Request body
-                  data: makeblob(IMAGE)
-
-              })
-              .done(function(data) {
-                console.log("DETECT IS DONE! GREIT SUKSEESSS!");
-                console.log(data);
-
-                FACES = data;
-
-                faceIds = [];
-
-                data.forEach(function (element) {
-                  faceIds.push(element["faceId"]);
-                });
-
-                console.log("foreach litib");
-                console.log(faceIds);
-
-                var params2 = {};
-
-                $.ajax({
-                    url: "https://westcentralus.api.cognitive.microsoft.com/face/v1.0/identify?" + $.param(params2),
-                    beforeSend: function(xhrObj){
-                        // Request headers
-                        xhrObj.setRequestHeader("Content-Type","application/json");
-
-                        // NOTE: Replace the "Ocp-Apim-Subscription-Key" value with a valid subscription key.
-                        xhrObj.setRequestHeader("Ocp-Apim-Subscription-Key","26b9b465ce4d4aab93fda70cd5b033b6");
-                    },
-                    type: "POST",
-                    // Request body
-                    data: '{"personGroupId": "enginaator","faceIds": ' + JSON.stringify(faceIds) + ',"maxNumOfCandidatesReturned": 1, "confidenceThreshold":0.3}'
-
-                })
-                .done(function(data) {
-                  FACES.forEach(function (face) {
-                    data.forEach(function (dat) {
-                      if (face["faceId"] == dat["faceId"]) {
-                        face["candidates"] = dat["candidates"];
-                      }
-                    });
-                  });
-
-                  console.log("WE ARE DONE!");
-                  console.log(FACES);
-
-                  KnownPeople = 0;
-
-                  FACES.forEach(function (face) {
-                      rect = face["faceRectangle"];
-                      context.beginPath();
-                      context.rect(rect["left"] * ZoomFactor, rect["top"] * ZoomFactor, rect["width"] * ZoomFactor, rect["height"] * ZoomFactor);
-
-                      context.lineWidth = 7;
-                      if (face["candidates"].length != 0) {
-                        //On Kristjan
-                        context.strokeStyle = 'green';
-                        PEOPLE.forEach(function (person) {
-
-                          if (face["candidates"][0]["personId"] == person["personId"]) {
-                            // Kui confidence on seatud, siis kui praegune confidence on väiksem kui see mis talle määratud siis igno, muidu kirjuta üle.
-
-                            person["OnImgIndex"] = KnownPeople;
-
-
-                            context.font = "16pt Calibri";
-                            context.strokeStyle = 'white';
-                            //context.fillText("" + KnownPeople + " (" + Math.floor(face["candidates"][0]["confidence"] * 100) + "%)", (rect["left"] + (rect["width"] / 2)) * ZoomFactor , (rect["top"]  - 20) * ZoomFactor);
-                            drawStroked(ctx, ("" + KnownPeople + " (" + Math.floor(face["candidates"][0]["confidence"] * 100) + "%)"), (rect["left"] - 30) * ZoomFactor , (rect["top"]  - 30) * ZoomFactor);
-
-                            document.getElementById("people").innerHTML = document.getElementById("people").innerHTML + person["OnImgIndex"] + "  -  " + person["desc"] + " - " + person["name"] + " - " + (face["candidates"][0]["confidence"] * 100) + "<br>";
-
-                            KnownPeople += 1;
-                          }
-                        });
-                      } else {
-                        //Ei ole Kristjan
-                        context.strokeStyle = 'red';
-                      }
-                      context.stroke();
-                    });
-
-                  console.log("PEOPLE");
-                  console.log(PEOPLE);
-                })
-                .fail(function() {
-                    alert("error");
-                });
-              })
-              .fail(function() {
-                  alert("error");
-              });
-            }; //Img onload lõppeb.
-          }})(f);
-
-
-
-          // Read in the image file as a data URL.
-          reader.readAsDataURL(f);
-        }
-
-  }
 
   document.getElementById('files').addEventListener('change', handleFileSelect, false);
 </script>
