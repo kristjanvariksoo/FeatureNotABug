@@ -73,8 +73,18 @@
     var IMAGE;
     var FACES;
 
+    function drawStroked(ctx, text, x, y) {
+      ctx.font = "16px Sans-serif"
+      ctx.strokeStyle = 'black';
+      ctx.lineWidth = 8;
+      ctx.strokeText(text, x, y);
+      ctx.fillStyle = 'white';
+      ctx.fillText(text, x, y);
+    }
+
     function handleFileSelect(evt) {
       document.getElementById("people").innerHTML = "";
+      document.getElementById("myCanvas").outerHTML = '<canvas id="myCanvas" width="1500" height="700"></canvas>';
       var files = evt.target.files; // FileList object
 
       // Loop through the FileList and render image files as thumbnails.
@@ -90,164 +100,169 @@
         // Closure to capture the file information.
         reader.onload = (function(theFile) {
           return function(e) {
-
-
-
-            console.log(e.target.result);
             IMAGE = e.target.result;
-
 
             var c=document.getElementById("myCanvas");
             var ctx=c.getContext("2d");
             var img = new Image;
             img.src = IMAGE + "";
-            console.log(img);
-            ctx.drawImage(img,10,10);
-            var canvas = document.getElementById('myCanvas');
-            var context = canvas.getContext('2d');
-
-            ZoomFactor = 1;
-
-            max_height = 1080;
-            max_width = 1920;
-
-            img_height = img.height;
-            img_width = img.width;
+            img.onload = function () {
+              console.log("Pilt laetud");
+              console.log(img);
 
 
-            document.getElementById('files').addEventListener('change', handleFileSelect, false);
+              ZoomFactor = 1;
 
-            var params = {"returnFaceId":true, "returnFaceLandmarks":false};
-            $.ajax({
-                url: "https://westcentralus.api.cognitive.microsoft.com/face/v1.0/detect?" + $.param(params),
-                beforeSend: function(xhrObj){
-                    // Request headers
-                    xhrObj.setRequestHeader("Content-Type","application/octet-stream");
+              max_height = 700;
+              max_width = 1500;
 
-                    // NOTE: Replace the "Ocp-Apim-Subscription-Key" value with a valid subscription key.
-                    xhrObj.setRequestHeader("Ocp-Apim-Subscription-Key","26b9b465ce4d4aab93fda70cd5b033b6");
-                },
-                type: "POST",
-                processData:false,
-                // Request body
-                data: makeblob(IMAGE)
+              img_height = img.height;
+              img_width = img.width;
 
-            })
-            .done(function(data) {
-              console.log("DETECT IS DONE! GREIT SUKSEESSS!");
-              console.log(data);
+              NeededYFactor = img_height/max_height;
+              NeededXFactor = img_width/max_width;
 
-              FACES = data;
-
-              faceIds = [];
-
-              data.forEach(function (element) {
-                faceIds.push(element["faceId"]);
-
+              if (NeededXFactor > 1 || NeededYFactor > 1) {
+                console.log("[RESIZE] Pilt ei mahu ära.");
+                if (NeededXFactor > NeededYFactor) {
+                  //X on rohkem üle serva.
+                  console.log("[RESIZE] Laius suurem probleem.");
+                  ZoomFactor = 1/NeededXFactor;
+                } else {
+                  //Y on rohkem üle serva.
+                  console.log("[RESIZE] Kõrgus on suurem probleem.");
+                  ZoomFactor = 1/NeededYFactor;
+                }
               }
-            );
 
-              console.log("foreach litib");
-              console.log(faceIds);
+              new_height = ZoomFactor * img_height;
+              new_width = ZoomFactor * img_width;
 
-              var params2 = {};
+              img.height = new_height;
+              img.width = new_width;
 
+              ctx.drawImage(img,0,0,new_width, new_height);
+              console.log("Draw it.");
+              var canvas = document.getElementById('myCanvas');
+              var context = canvas.getContext('2d');
+
+
+              document.getElementById('files').addEventListener('change', handleFileSelect, false);
+
+              var params = {"returnFaceId":true, "returnFaceLandmarks":false};
               $.ajax({
-                  url: "https://westcentralus.api.cognitive.microsoft.com/face/v1.0/identify?" + $.param(params2),
+                  url: "https://westcentralus.api.cognitive.microsoft.com/face/v1.0/detect?" + $.param(params),
                   beforeSend: function(xhrObj){
                       // Request headers
-                      xhrObj.setRequestHeader("Content-Type","application/json");
+                      xhrObj.setRequestHeader("Content-Type","application/octet-stream");
 
                       // NOTE: Replace the "Ocp-Apim-Subscription-Key" value with a valid subscription key.
                       xhrObj.setRequestHeader("Ocp-Apim-Subscription-Key","26b9b465ce4d4aab93fda70cd5b033b6");
                   },
                   type: "POST",
+                  processData:false,
                   // Request body
-                  data: '{"personGroupId": "enginaator","faceIds": ' + JSON.stringify(faceIds) + ',"maxNumOfCandidatesReturned": 1, "confidenceThreshold":0.3}'
+                  data: makeblob(IMAGE)
 
               })
               .done(function(data) {
-                FACES.forEach(function (face) {
-                  data.forEach(function (dat) {
-                    if (face["faceId"] == dat["faceId"]) {
-                      face["candidates"] = dat["candidates"];
-                    }
+                console.log("DETECT IS DONE! GREIT SUKSEESSS!");
+                console.log(data);
+
+                FACES = data;
+
+                faceIds = [];
+
+                data.forEach(function (element) {
+                  faceIds.push(element["faceId"]);
+                });
+
+                console.log("foreach litib");
+                console.log(faceIds);
+
+                var params2 = {};
+
+                $.ajax({
+                    url: "https://westcentralus.api.cognitive.microsoft.com/face/v1.0/identify?" + $.param(params2),
+                    beforeSend: function(xhrObj){
+                        // Request headers
+                        xhrObj.setRequestHeader("Content-Type","application/json");
+
+                        // NOTE: Replace the "Ocp-Apim-Subscription-Key" value with a valid subscription key.
+                        xhrObj.setRequestHeader("Ocp-Apim-Subscription-Key","26b9b465ce4d4aab93fda70cd5b033b6");
+                    },
+                    type: "POST",
+                    // Request body
+                    data: '{"personGroupId": "enginaator","faceIds": ' + JSON.stringify(faceIds) + ',"maxNumOfCandidatesReturned": 1, "confidenceThreshold":0.3}'
+
+                })
+                .done(function(data) {
+                  FACES.forEach(function (face) {
+                    data.forEach(function (dat) {
+                      if (face["faceId"] == dat["faceId"]) {
+                        face["candidates"] = dat["candidates"];
+                      }
+                    });
                   });
+
+                  console.log("WE ARE DONE!");
+                  console.log(FACES);
+
+                  KnownPeople = 0;
+
+                  FACES.forEach(function (face) {
+                      rect = face["faceRectangle"];
+                      context.beginPath();
+                      context.rect(rect["left"] * ZoomFactor, rect["top"] * ZoomFactor, rect["width"] * ZoomFactor, rect["height"] * ZoomFactor);
+
+                      context.lineWidth = 7;
+                      if (face["candidates"].length != 0) {
+                        //On Kristjan
+                        context.strokeStyle = 'green';
+                        PEOPLE.forEach(function (person) {
+
+                          if (face["candidates"][0]["personId"] == person["personId"]) {
+                            // Kui confidence on seatud, siis kui praegune confidence on väiksem kui see mis talle määratud siis igno, muidu kirjuta üle.
+
+                            person["OnImgIndex"] = KnownPeople;
+
+
+                            context.font = "16pt Calibri";
+                            context.strokeStyle = 'white';
+                            //context.fillText("" + KnownPeople + " (" + Math.floor(face["candidates"][0]["confidence"] * 100) + "%)", (rect["left"] + (rect["width"] / 2)) * ZoomFactor , (rect["top"]  - 20) * ZoomFactor);
+                            drawStroked(ctx, ("" + KnownPeople + " (" + Math.floor(face["candidates"][0]["confidence"] * 100) + "%)"), (rect["left"]) * ZoomFactor , (rect["top"]  - 30) * ZoomFactor);
+
+                            document.getElementById("people").innerHTML = document.getElementById("people").innerHTML + person["OnImgIndex"] + "  -  " + person["desc"] + " - " + person["name"] + " - " + (face["candidates"][0]["confidence"] * 100) + "<br>";
+
+                            KnownPeople += 1;
+                          }
+                        });
+                      } else {
+                        //Ei ole Kristjan
+                        context.strokeStyle = 'red';
+                      }
+                      context.stroke();
+                    });
+
+                  console.log("PEOPLE");
+                  console.log(PEOPLE);
+                })
+                .fail(function() {
+                    alert("error");
                 });
-
-                console.log("WE ARE DONE!");
-                console.log(FACES);
-
-                KnownPeople = 0;
-
-                FACES.forEach(function (face) {
-
-                    rect = face["faceRectangle"];
-                    context.beginPath();
-                    context.rect(rect["left"], rect["top"], rect["width"], rect["height"]);
-
-                    context.lineWidth = 7;
-                    if (face["candidates"].length != 0) {
-                      //On Kristjan
-                      context.strokeStyle = 'green';
-                      PEOPLE.forEach(function (person) {
-
-                        if (face["candidates"][0]["personId"] == person["personId"]) {
-                          // Kui confidence on seatud, siis kui praegune confidence on väiksem kui see mis talle määratud siis igno, muidu kirjuta üle.
-
-                          person["OnImgIndex"] = KnownPeople;
-
-
-                          context.font = "16pt Calibri";
-                          context.strokeStyle = 'white';
-                          context.fillText("" + KnownPeople + " (" + Math.floor(face["candidates"][0]["confidence"] * 100) + "%)", rect["left"] + (rect["width"] / 2), rect["top"]  - 20);
-
-                          document.getElementById("people").innerHTML = document.getElementById("people").innerHTML + person["OnImgIndex"] + "  -  " + person["desc"] + " - " + person["name"] + " - " + (face["candidates"][0]["confidence"] * 100) + "<br>";
-
-                          KnownPeople += 1;
-                        }
-                      });
-                    } else {
-                      //Ei ole Kristjan
-                      context.strokeStyle = 'red';
-                    }
-                    context.stroke();
-
-
-
-                //  ______ _            _ _   _
-                // |  ____(_)          (_) | | |
-                // | |__   ___  __      _| |_| |
-                // |  __| | \ \/ /     | | __| |
-                // | |    | |>  <      | | |_|_|
-                // |_|    |_/_/\_\     |_|\__(_)
-                // Praegu oletame, et on üks kandidaat, tulevikus on mitu.
-
-
-                  //if (face["candidates"][0])
-                  /**/
-                });
-                console.log("PEOPLE");
-                console.log(PEOPLE);
-
-
               })
               .fail(function() {
                   alert("error");
               });
-            })
-            .fail(function() {
-                alert("error");
-            });
-
-          };
-        })(f);
+            }; //Img onload lõppeb.
+          }})(f);
 
 
 
-        // Read in the image file as a data URL.
-        reader.readAsDataURL(f);
-      }
+          // Read in the image file as a data URL.
+          reader.readAsDataURL(f);
+        }
+
   }
 
   document.getElementById('files').addEventListener('change', handleFileSelect, false);
