@@ -1,5 +1,4 @@
-{
-	[
+PEOPLE = [
 		{
 			"desc":"Elab Tartus, õpib informaatikat ja armastab lugeda",
 			"fbid":"kjbalder",
@@ -432,5 +431,4 @@
 			"name":"Donald Trump",
 			"personId":"3ff64a38-f419-4558-b91c-6b5abd1acb6b"
 		}
-	]
-}
+	];
