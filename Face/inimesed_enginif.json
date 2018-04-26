@@ -425,6 +425,12 @@
 			"fbid":"gunnar.piho",
 			"name":"Gunnar Piho",
 			"personId":"c565b5f2-1e81-4a3a-9a83-69a95d60223d"
+		},
+		{
+			"desc":"USA president. MAGA",
+			"fbid":"donald.trump",
+			"name":"Donald Trump",
+			"personId":"3ff64a38-f419-4558-b91c-6b5abd1acb6b"
 		}
 	]
 }
