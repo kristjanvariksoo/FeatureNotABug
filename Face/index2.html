@@ -45,7 +45,19 @@
     <main role="main" class="container">
       <div class="row" style="padding-top:5rem;">
   <canvas id="myCanvas" width="1500" height="700"></canvas>
-  <p id="people"></p>
+  <table class="table" id="people">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Nimi</th>
+        <th scope="col">Kirjeldus</th>
+        <th scope="col">Täpsus</th>
+      </tr>
+    </thead>
+    <tbody>
+
+    </tbody>
+  </table>
   <style>
     .thumb {
       height: 75px;
@@ -94,7 +106,7 @@
     }
 
     function handleFileSelect(evt) {
-      document.getElementById("people").innerHTML = "";
+      document.getElementById("people").innerHTML = '<thead><tr><th scope="col">#</th><th scope="col">Nimi</th><th scope="col">Kirjeldus</th><th scope="col">Täpsus</th></tr></thead><tbody></tbody>';
       document.getElementById("myCanvas").outerHTML = '<canvas id="myCanvas" width="1500" height="700"></canvas>';
       var files = evt.target.files; // FileList object
 
@@ -243,7 +255,7 @@
                             //context.fillText("" + KnownPeople + " (" + Math.floor(face["candidates"][0]["confidence"] * 100) + "%)", (rect["left"] + (rect["width"] / 2)) * ZoomFactor , (rect["top"]  - 20) * ZoomFactor);
                             drawStroked(ctx, ("" + KnownPeople + " (" + Math.floor(face["candidates"][0]["confidence"] * 100) + "%)"), (rect["left"] + 20) * ZoomFactor , (rect["top"]  - 30) * ZoomFactor);
 
-                            document.getElementById("people").innerHTML = document.getElementById("people").innerHTML + person["OnImgIndex"] + "  -  " + person["desc"] + " - " + person["name"] + " - " + (face["candidates"][0]["confidence"] * 100) + "<br>";
+                            document.getElementById("people").getElementsByTagName("tbody")[0].innerHTML = document.getElementById("people").getElementsByTagName("tbody")[0].innerHTML + "<tr><td>" + person["OnImgIndex"] + "</td><td>" + person["name"] + "</td><td>" + person["desc"] + "</td><td>" + (face["candidates"][0]["confidence"] * 100) + "</td></tr>";
 
                             KnownPeople += 1;
                           }
