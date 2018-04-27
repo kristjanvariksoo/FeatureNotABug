@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+
+<title>FeatureNotABug</title>
+<link rel="icon" type="image/png" href="logo.png" >
+<link href="esileht.css" rel="stylesheet" type="text/css">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+
+</style>
+</head>
+
+
+<body>
+
+<div class="suur_logo">
+	<a href="http://enos.itcollege.ee/~llenbaum/ENGINAATOR/esileht.html" target="_blank">
+	<img src="logo.png" height="233" width="842"></a>
+	
+</div>
+
+<div class="topnav">
+	<a href="http://enos.itcollege.ee/~rkaal/engin/karl">Karl</a>
+	<a href="#Kristjan">Kristjan</a>
+	<a href="#Radne">Radne</a>
+	<a href="#Laura">Laura</a>
+</div>
+
+<div class="meie_tiim">
+	<p><h1>Meie tiim: FeatureNotABug</h1><p>
+	<div class="tutvustus">
+	<p><h2>Osaleme 26.04-29.04.2018 TTÜ-s toimuval insenerivõistlusel Enginaator</h2></p>
+	</div>
+	<img src="tiimipilt.jpg" alt="Meie tiim">
+	
+	
+</div>
+
+</body>
+</html>
