@@ -45,8 +45,18 @@
 
     <main role="main" class="container">
       <div class="row" style="padding-top:5rem;">
+
         <div class="col-md-6"><video autoplay id="videoElement"></video></div>
         <div class="col-md-6"><canvas id="myCanvas" width="640" height="480"></canvas></div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="progress">
+          <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" id="progress" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
         <table class="table" id="people">
           <thead>
             <tr>
@@ -103,6 +113,7 @@
       video.src = window.URL.createObjectURL(stream);
       document.getElementById('save').click();
       window.setInterval(function () {document.getElementById('save').click();}, 6000);
+      window.setInterval(function () {document.getElementById("progress").style.width = ((document.getElementById("progress").style.width.slice(0,-1)*-1)*-1) + 2.5 + "%"}, 250);
   }
 
   function videoError(e) {
@@ -278,6 +289,7 @@
 
            console.log("PEOPLE");
            console.log(PEOPLE);
+           document.getElementById("progress").style.width = "0%";
          })
          .fail(function() {
          });
