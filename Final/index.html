@@ -6,9 +6,14 @@
     </head>
     <body>
         <h1>Communication with socket.io!</h1>
+        <p id="raw"></p>
         <script src="/socket.io/socket.io.js"></script>
         <script>
             var socket = io.connect('http://localhost:8080');
+            socket.emit('chat message', "Taitsa sonumikene!");
+            socket.on('gotline', function(msg){
+              document.getElementById("raw").innerHTML += msg + "<br>";
+            });
         </script>
     </body>
 </html>
