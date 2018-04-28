@@ -20,19 +20,22 @@ var io = require('socket.io').listen(server);
 // When a client connects, we note it in the console
 io.sockets.on('connection', function (socket) {
     console.log('[SOCK] Client connected!');
-    console.log(socket);
-    socket.on('chat message', function(msg){
-      console.log('message: ' + msg);
-    });
 });
 
 PORT = 8080;
 server.listen(PORT);
 console.log("[HTTP] Server started on port " + PORT);
 
+function isNormalInteger(str) {
+    return /^\+?(0|[1-9]\d*)$/.test(str);
+}
+
 function ProcessLine(arr) {
   line = arr.join("").slice(0,-2);
-  io.emit('gotline', line);
+
+  if (isNormalInteger(line)) {
+    io.emit('speed', parseInt(line));
+  }
 }
 
 var SerialPort = require('serialport');
@@ -49,7 +52,6 @@ port.on("open", function(){
 
       char = String.fromCharCode(charcode);
       //console.log("[SERIAL] Got data: " + char);
-
       Line.push(char);
       if (char == "\n") {
         ProcessLine(Line);
