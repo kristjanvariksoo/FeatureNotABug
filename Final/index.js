@@ -34,13 +34,14 @@ function ProcessLine(arr) {
   line = arr.join("").slice(0,-2);
 
   if (isNormalInteger(line)) {
+    console.log("[DATA] " + line);
     io.emit('speed', parseInt(line));
   }
 }
 
 var SerialPort = require('serialport');
-var port = new SerialPort('/dev/ttyUSB0', {
-  baudRate: 9600
+var port = new SerialPort('/dev/ttyACM0', {
+  baudRate: 115200
 });
 port.on("open", function(){
   Line = [];

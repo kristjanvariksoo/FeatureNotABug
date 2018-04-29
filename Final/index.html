@@ -5,24 +5,39 @@
         <title>Socket.io</title>
     </head>
     <body>
+        <link href="https://fonts.googleapis.com/css?family=Lato:300" rel="stylesheet">
       <style>
         html, body {
           width: 100%;
           height: 100%;
+          margin:0;
+          background-color: #222;
         }
 
         #RPMGauge {
           display: block;
           margin: 0 auto;
         }
+
+
+
+
+        h1 {
+          color:white;
+          font-family: 'Lato', sans-serif;
+          text-align: center;
+        }
       </style>
-        <p id="raw"></p>
         <script src="/socket.io/socket.io.js"></script>
         <script src="//cdn.rawgit.com/Mikhus/canvas-gauges/gh-pages/download/2.1.5/all/gauge.min.js"></script>
 
-        <canvas id="RPMGauge" data-type="radial-gauge"></canvas>
+        <canvas id="RPMGauge"></canvas>
+
+        <h1 id="maxval"></h1>
 
 <script>
+    var maxval = 0;
+
     var gauge = new RadialGauge({
     renderTo: 'RPMGauge',
     width: GaugeSize,
@@ -31,10 +46,10 @@
     title: false,
     value: 0,
     majorTicks: [
-        '100','200','300','400','500','600','700','800','900','1000','1100','1200'
+        '0', '100','200','300','400','500','600','700','800','900','1000','1100'
     ],
     minValue: 0,
-    maxValue: 500,
+    maxValue: 1200,
     colorPlate: '#222',
     colorMajorTicks: '#f5f5f5',
     colorMinorTicks: '#ddd',
@@ -45,14 +60,19 @@
     colorNeedleEnd: 'rgba(255, 160, 122, .9)',
     valueBox: true,
     animationRule: 'linear',
-    animationDuration: 500
+    animationDuration: 50
     });
 
     function Connect() {
-      var socket = io.connect('http://localhost:8080');
+      var socket = io.connect('http://192.168.43.5:8080');
 
       socket.on('speed', function(msg){
+        if (msg > maxval) {
+          maxval = msg;
+          document.getElementById("maxval").innerHTML = "Praegune rekord: " + maxval + " RPM";
+        }
         gauge.value = msg;
+        console.log(msg);
         gauge.draw();
       });
     }
@@ -67,7 +87,7 @@
         window.GaugeSize = window.innerWidth;
       }
 
-      window.GaugeSize *= 0.9;
+      window.GaugeSize *= 0.8;
 
       window.gauge.width = window.GaugeSize;
       window.gauge.height = window.GaugeSize;
@@ -82,7 +102,7 @@
     Connect();
     SizeIt();
 
-    gauge.value = 33.2;
+    gauge.value = 0;
     gauge.draw();
 </script>
 
